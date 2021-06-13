@@ -36,7 +36,7 @@ contract WETHtoDAI is DCA {
     pricePerToken = (tokensToBuyReceived * 1e18)/dailyTotalSell;
   }
 
-  function _baseURI() internal view override returns (string memory) {
+  function _baseURI() internal pure override returns (string memory) {
     return "https://dca-api.llama.fi/yethydai/";
   }
 }
