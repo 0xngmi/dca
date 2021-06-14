@@ -25,7 +25,7 @@ contract DCA is ERC721, AccessControl {
   mapping(uint256 => uint256) public removeSellAmountByDay;
   mapping(uint256 => UserPosition) public userPositions;
 
-  function currentDay() internal view returns (uint256) {
+  function currentDay() public view returns (uint256) {
     return block.timestamp / 1 days;
   }
 
@@ -35,6 +35,7 @@ contract DCA is ERC721, AccessControl {
     tokenToSell = IERC20(_tokenToSell);
     tokenToBuy = IERC20(_tokenToBuy);
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    lastDaySold = currentDay();
   }
 
   function provide(uint256 sellDurationInDays, uint256 dailySellAmount)
