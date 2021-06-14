@@ -42,6 +42,18 @@ contract DCA is ERC721, AccessControl {
     public
     returns (uint256)
   {
+    tokenToSell.safeTransferFrom(
+      msg.sender,
+      address(this),
+      sellDurationInDays * dailySellAmount
+    );
+    return createPosition(sellDurationInDays, dailySellAmount);
+  }
+
+  function createPosition(uint256 sellDurationInDays, uint256 dailySellAmount)
+    internal
+    returns (uint256)
+  {
     require(sellDurationInDays > 0, "duration!=0");
     uint256 dayStart = currentDay();
     require((lastDaySold + 2) > dayStart, "Halted");
@@ -51,12 +63,6 @@ contract DCA is ERC721, AccessControl {
     uint256 lastDay = dayStart + sellDurationInDays;
     removeSellAmountByDay[lastDay] += dailySellAmount;
     dailyTotalSell += dailySellAmount;
-
-    tokenToSell.safeTransferFrom(
-      msg.sender,
-      address(this),
-      sellDurationInDays * dailySellAmount
-    );
 
     uint256 id = length;
     userPositions[id] = UserPosition({

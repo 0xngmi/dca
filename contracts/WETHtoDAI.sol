@@ -12,14 +12,20 @@ interface IYearnV2Vault {
     function withdraw(uint amount) external returns (uint);
 }
 
+interface IWETH {
+    function deposit() external payable;
+}
+
 contract WETHtoDAI is DCA {
   using SafeERC20 for IERC20;
 
   IUniswapV2Pair constant sushiDaiPair = IUniswapV2Pair(0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f);
   IERC20 constant DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+  IWETH constant WETH = IWETH(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
   constructor() DCA("ETH->DAI", "DCA Vault: yETH->yDAI", 0xa9fE4601811213c340e850ea305481afF02f5b28, 0x19D3364A399d251E894aC732651be8B0E4e85001){
     DAI.approve(0x19D3364A399d251E894aC732651be8B0E4e85001,  2**256 - 1); // DAI doesn't decrease allowance if it's uint(-1)
+    IERC20(address(WETH)).approve(0xa9fE4601811213c340e850ea305481afF02f5b28,  2**256 - 1); // Same
   }
 
   function executeSell(uint minReceivedPerToken) internal override returns (uint pricePerToken) {
@@ -38,5 +44,13 @@ contract WETHtoDAI is DCA {
 
   function _baseURI() internal pure override returns (string memory) {
     return "https://dca-api.llama.fi/yethydai/";
+  }
+
+  function apeWithEth(uint256 sellDurationInDays, uint256 dailySellAmount) public payable returns (uint) {
+    uint amount = msg.value;
+    WETH.deposit{value: amount}();
+    uint yAmount = IYearnV2Vault(address(tokenToSell)).deposit(amount);
+    require(yAmount >= (sellDurationInDays * dailySellAmount), "yAmount");
+    return createPosition(sellDurationInDays, dailySellAmount);
   }
 }
